@@ -14,7 +14,7 @@ static struct ASTnode *primary(void)
 			scan(&Token);
 			return (n);
 		default:
-			fprintf(stderr,"syntax error on line %d\n",Line);
+			fprintf(stderr,"syntax error on line %d\n, token %d\n",Line,Token.token);
 			exit(1);
 	}
 }
@@ -60,7 +60,7 @@ struct ASTnode *binexpr(int ptp) {
   left = primary();
 
   tokentype = Token.token;
-  if (tokentype == T_EOF)
+  if (tokentype == T_SEMI)
     return (left);
 
   while (op_precedence(tokentype) > ptp) {//由于main中调用binexpr时参数为0，因此会一直迭代到文件结束
@@ -71,7 +71,7 @@ struct ASTnode *binexpr(int ptp) {
     left = mkastnode(arithop(tokentype), left, right, 0);
 
     tokentype = Token.token;
-    if (tokentype == T_EOF)
+    if (tokentype == T_SEMI)
       return (left);
   }
 

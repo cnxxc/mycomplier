@@ -118,7 +118,7 @@ int cgdiv(int r1,int r2)
 	return (r1);
 }
 
-//打印一个寄存器
+//打印一个寄存器中的值，一般是一个语句的结果
 void cgprintint(int r)
 {
 	fprintf(Outfile,"\tmovq\t%s,%%rdi\n",reglist[r]);//Linux x86-64期望函数的第一个参数在%rdi中

@@ -49,6 +49,42 @@ static int scanint(int c)
 	return val;
 }
 
+//扫描标识符
+static int scanident(int c,char *buf,int lim)
+{
+	int i=0;
+
+	while(isalpha(c)||isdigit(c)||'_'==c)//标识符由数字、字母或_组成
+	{
+		if(lim-1==i)
+		{
+			printf("identifier too long on line %d\n",Line);
+			exit(1);
+		}
+		else if(i<lim-1)
+		{
+			buf[i++]=c;
+		}
+		c=next();
+	}
+	putback(c);
+	buf[i]='\0';
+	return (i);
+}
+
+//扫描关键字
+static int keyword(char *s)
+{
+	switch(*s)
+	{
+		case 'p':
+			if(!strcmp(s,"print"))
+				return (T_PRINT);
+			break;
+	}
+	return (0);
+}
+
 //跳过空白符
 static int skip(void)
 {
@@ -64,7 +100,7 @@ static int skip(void)
 //扫描下一个字符赋给t
 int scan(struct token *t)
 {
-	int c;
+	int c,tokentype;
 	c=skip();
 	switch(c)
 	{
@@ -83,6 +119,9 @@ int scan(struct token *t)
 		case '/':
 			t->token=T_SLASH;
 			break;
+		case ';':
+			t->token=T_SEMI;
+			break;
 		default:
 			if(isdigit(c))
 			{
@@ -90,7 +129,17 @@ int scan(struct token *t)
 				t->token=T_INTLIT;
 				break;
 			}
-
+			else if(isalpha(c)||'_'==c)
+			{
+				scanident(c,Text,TEXTLEN);
+				if(tokentype=keyword(Text))//判断Text是否关键字，不用==
+				{
+					t->token=tokentype;
+					break;
+				}
+				printf("Unrecognised symbol %s on line %d\n", Text, Line);
+				exit(1);
+			}
 			printf("Unrecognized character %c on line %d\n",c,Line);
 			exit(1);
 	}

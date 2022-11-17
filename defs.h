@@ -3,9 +3,11 @@
 #include <string.h>
 #include <ctype.h>
 
+#define TEXTLEN	512
+
 enum{
-	T_EOF,T_PLUS,T_MINUS,T_STAR,T_SLASH,T_INTLIT	
-};//文件结束符、加、减、乘、除、数
+	T_EOF,T_PLUS,T_MINUS,T_STAR,T_SLASH,T_INTLIT,T_SEMI,T_PRINT	
+};//文件结束符、加、减、乘、除、数、分号、print
 
 struct token{
 	int token;

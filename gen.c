@@ -3,7 +3,7 @@
 #include "decl.h"
 
 //汇编代码生成
-static int genAST(struct ASTnode *n)
+int genAST(struct ASTnode *n)
 {
 	int leftreg,rightreg;
 
@@ -24,12 +24,18 @@ static int genAST(struct ASTnode *n)
 	}
 }
 
-void generatecode(struct ASTnode *n)
-{
-	int reg;
+void genpreamble() {
+  cgpreamble();
+}
 
-	cgpreamble();
-	reg=genAST(n);
-	cgprintint(reg);
-	cgpostamble();
+void genpostamble() {
+  cgpostamble();
+}
+
+void genfreeregs() {
+  freeall_registers();
+}
+
+void genprintint(int reg) {
+  cgprintint(reg);
 }
