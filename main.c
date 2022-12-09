@@ -1,5 +1,5 @@
 #include "defs.h"
-#define extern_
+#define extern_//编译时将extern_替换为空，这样data.h中的变量仅在main.c中可见
 #include "data.h"
 #undef extern_
 #include "decl.h"
@@ -26,19 +26,19 @@ static void usage(char *prog) {
 void main(int argc, char *argv[]) {
 
   if (argc != 2)
-    usage(argv[0]);
+	usage(argv[0]);
 
   init();
 
   // Open up the input file
   if ((Infile = fopen(argv[1], "r")) == NULL) {
-    fprintf(stderr, "Unable to open %s: %s\n", argv[1], strerror(errno));
-    exit(1);
+	fprintf(stderr, "Unable to open %s: %s\n", argv[1], strerror(errno));
+	exit(1);
   }
   // Create the output file
   if ((Outfile = fopen("out.s", "w")) == NULL) {
-    fprintf(stderr, "Unable to create out.s: %s\n", strerror(errno));
-    exit(1);
+	fprintf(stderr, "Unable to create out.s: %s\n", strerror(errno));
+	exit(1);
   }
 
   scan(&Token);			// Get the first token from the input

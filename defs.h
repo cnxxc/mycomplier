@@ -5,13 +5,14 @@
 
 #define TEXTLEN	512
 
+//Tokens
 enum{
 	T_EOF,T_PLUS,T_MINUS,T_STAR,T_SLASH,T_INTLIT,T_SEMI,T_PRINT	
 };//文件结束符、加、减、乘、除、数、分号、print
 
 struct token{
-	int token;
-	int intvalue;
+	int token;//取Tokens中的值
+	int intvalue;//，当token取T_INTLIT时有效
 };
 
 enum{
