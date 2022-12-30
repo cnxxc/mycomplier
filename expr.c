@@ -2,7 +2,7 @@
 #include "data.h"
 #include "decl.h"
 
-//判断并构建叶子结点（整数结点）
+//判断并构建叶子结点（叶子结点）
 static struct ASTnode *primary(void)
 {
 	struct ASTnode *n;
@@ -19,7 +19,7 @@ static struct ASTnode *primary(void)
 	}
 }
 
-//token转四则运算符
+//token转AST node type
 int arithop(int tok)
 {
 	switch(tok)

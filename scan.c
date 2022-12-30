@@ -20,6 +20,7 @@ static int chrpos(char *s,int c)
 static int next(void)
 {
 	int c;
+	//读取时先看有无Putback的字符
 	if(Putback)
 	{
 		c=Putback;
@@ -85,7 +86,7 @@ static int keyword(char *s)
 	return (0);
 }
 
-//跳过空白符
+//跳过空白符，返回下一个非空白符
 static int skip(void)
 {
 	int c;
@@ -97,7 +98,7 @@ static int skip(void)
 	return (c);
 }
 
-//扫描下一个字符赋给t
+//扫描下一个token赋给t，扫描到文件结尾返回0
 int scan(struct token *t)
 {
 	int c,tokentype;

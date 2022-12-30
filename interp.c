@@ -4,6 +4,7 @@
 
 static char *ASTop[] = { "+", "-", "*", "/" };
 
+//递归计算AST树
 int interpretAST(struct ASTnode *n)
 {
 	int leftval,rightval;
