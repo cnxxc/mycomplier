@@ -2,7 +2,7 @@
 #include "data.h"
 #include "decl.h"
 
-//判断并构建叶子结点（叶子结点）
+//判断并构建叶子结点（整数结点）
 static struct ASTnode *primary(void)
 {
 	struct ASTnode *n;
@@ -41,6 +41,7 @@ int arithop(int tok)
 static int OpPrec[]={0,10,10,20,20,0};
 //					EOF,+,-, *, /,INTLIT
 
+//获取运算符优先级
 static int op_precedence(int tokentype)
 {
 	int prec=OpPrec[tokentype];
@@ -63,10 +64,11 @@ struct ASTnode *binexpr(int ptp) {
   if (tokentype == T_SEMI)
     return (left);
 
-  while (op_precedence(tokentype) > ptp) {//由于main中调用binexpr时参数为0，因此会一直迭代到文件结束
+  //由于main中调用binexpr时参数为0，因此会一直迭代到文件结束
+  while (op_precedence(tokentype) > ptp) {
     scan(&Token);
 
-    right = binexpr(OpPrec[tokentype]);
+    right = binexpr(OpPrec[tokentype]);//递归结束之后，输入参数ptp仍然为0
 
     left = mkastnode(arithop(tokentype), left, right, 0);
 
