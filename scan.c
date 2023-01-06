@@ -2,12 +2,6 @@
 #include "data.h"
 #include "decl.h"
 
-//将一个字符放回流，下次调用next()时，取出该字符，不是真的放回
-static void putback(int c)
-{
-	Putback=c;
-}
-
 //在字符串s中找字符c，返回c的位置
 static int chrpos(char *s,int c)
 {
@@ -36,54 +30,10 @@ static int next(void)
 	return c;
 }
 
-//扫描整数
-static int scanint(int c)
+//将一个字符放回流，下次调用next()时，取出该字符，不是真的放回
+static void putback(int c)
 {
-	int k,val=0;
-	while((k=chrpos("0123456789",c))>=0)
-	{
-		val=val*10+k;
-		c=next();
-	}
-
-	putback(c);
-	return val;
-}
-
-//扫描标识符
-static int scanident(int c,char *buf,int lim)
-{
-	int i=0;
-
-	while(isalpha(c)||isdigit(c)||'_'==c)//标识符由数字、字母或_组成
-	{
-		if(lim-1==i)
-		{
-			printf("identifier too long on line %d\n",Line);
-			exit(1);
-		}
-		else if(i<lim-1)
-		{
-			buf[i++]=c;
-		}
-		c=next();
-	}
-	putback(c);
-	buf[i]='\0';
-	return (i);
-}
-
-//扫描关键字
-static int keyword(char *s)
-{
-	switch(*s)
-	{
-		case 'p':
-			if(!strcmp(s,"print"))
-				return (T_PRINT);
-			break;
-	}
-	return (0);
+	Putback=c;
 }
 
 //跳过空白符，返回下一个非空白符
@@ -98,6 +48,57 @@ static int skip(void)
 	return (c);
 }
 
+//扫描整数
+static int scanint(int c)
+{
+	int k,val=0;
+	while((k=chrpos("0123456789",c))>=0)
+	{
+		val=val*10+k;
+		c=next();
+	}
+
+	putback(c);
+	return val;
+}
+
+//扫描标识符，c是第一个字符，buf保存字符串，长度必须小于lim，返回标识符长度
+static int scanident(int c,char *buf,int lim)
+{
+	int i=0;
+
+	while(isalpha(c)||isdigit(c)||'_'==c)//标识符由数字、字母或_组成
+	{
+		if(lim-1==i)
+			fatal("Identifier too long");
+		else if(i<lim-1)
+		{
+			buf[i++]=c;
+		}
+		c=next();
+	}
+	putback(c);
+	buf[i]='\0';
+	return (i);
+}
+
+//判断字符串是否是关键字
+static int keyword(char *s)
+{
+	switch(*s)
+	{
+	case 'i':
+		if(!strcmp(s,"int"))
+			return (T_INT);
+		break;
+	case 'p':
+		if(!strcmp(s,"print"))
+			return (T_PRINT);
+		break;
+	}
+	return (0);
+}
+
 //扫描下一个token赋给t，扫描到文件结尾返回0
 int scan(struct token *t)
 {
@@ -105,44 +106,48 @@ int scan(struct token *t)
 	c=skip();
 	switch(c)
 	{
-		case EOF:
-			t->token=T_EOF;
-			return (0);
-		case '+':
-			t->token=T_PLUS;
+	case EOF:
+		t->token=T_EOF;
+		return (0);
+	case '+':
+		t->token=T_PLUS;
+		break;
+	case '-':
+		t->token=T_MINUS;
+		break;
+	case '*':
+		t->token=T_STAR;
+		break;
+	case '/':
+		t->token=T_SLASH;
+		break;
+	case ';':
+		t->token=T_SEMI;
+		break;
+	case '=':
+		t->token=T_EQUALS;
+		break;
+	default:
+		if(isdigit(c))
+		{
+			t->intvalue=scanint(c);
+			t->token=T_INTLIT;
 			break;
-		case '-':
-			t->token=T_MINUS;
-			break;
-		case '*':
-			t->token=T_STAR;
-			break;
-		case '/':
-			t->token=T_SLASH;
-			break;
-		case ';':
-			t->token=T_SEMI;
-			break;
-		default:
-			if(isdigit(c))
+		}
+		else if(isalpha(c)||'_'==c)
+		{
+			scanident(c,Text,TEXTLEN);
+			//判断Text是否关键字，不用==，不是关键字时为0
+			if(tokentype=keyword(Text))
 			{
-				t->intvalue=scanint(c);
-				t->token=T_INTLIT;
+				t->token=tokentype;
 				break;
 			}
-			else if(isalpha(c)||'_'==c)
-			{
-				scanident(c,Text,TEXTLEN);
-				if(tokentype=keyword(Text))//判断Text是否关键字，不用==
-				{
-					t->token=tokentype;
-					break;
-				}
-				printf("Unrecognised symbol %s on line %d\n", Text, Line);
-				exit(1);
-			}
-			printf("Unrecognized character %c on line %d\n",c,Line);
-			exit(1);
+			//不是关键字就是标识符
+			t->token=T_IDENT;
+			break;
+		}
+		fatalc("Unrecognised character", c);
 	}
 	return (1);
 }

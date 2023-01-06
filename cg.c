@@ -2,7 +2,7 @@
 #include "data.h"
 #include "decl.h"
 
-static int freereg[4];//寄存器是否可用(1)
+static int freereg[4];//寄存器是否可用，1表示可用，0表示不可用
 static char *reglist[4]={"%r8","%r9","%r10","%r11"};//寄存器名称
 
 //释放所有寄存器
@@ -11,7 +11,7 @@ void freeall_registers(void)
   freereg[0]= freereg[1]= freereg[2]= freereg[3]= 1;
 }
 
-//分配一个空闲寄存器
+//分配一个空闲寄存器，返回序号
 static int alloc_register(void)
 {
   for (int i=0; i<4; i++) {
@@ -20,8 +20,7 @@ static int alloc_register(void)
       return(i);
     }
   }
-  fprintf(stderr, "Out of registers!\n");
-  exit(1);
+  fatal("Out of registers");
 }
 
 //释放一个寄存器
@@ -75,12 +74,22 @@ void cgpostamble()
 }
 
 //将value加载到分配的寄存器中
-int cgload(int value)
+int cgloadint(int value)
 {
 	int r=alloc_register();
 
 	fprintf(Outfile,"\tmovq\t$%d, %s\n",value,reglist[r]);
 	return (r);
+}
+
+//将标识符的值传入新寄存器
+int cgloadglob(char *identifier) {
+  // Get a new register
+  int r = alloc_register();
+
+  // Print out the code to initialise it
+  fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", identifier, reglist[r]);
+  return (r);
 }
 
 //两个寄存器中的值相加，存入r2，释放r1
@@ -107,7 +116,7 @@ int cgsub(int r1,int r2)
 	return (r1);
 }
 
-//r1寄存器除以r2寄存器
+//r1寄存器除以r2寄存器，释放r2
 int cgdiv(int r1,int r2)
 {
 	fprintf(Outfile,"\tmovq\t%s,%%rax\n",reglist[r1]);//将被除数加载到%rax寄存器
@@ -118,10 +127,21 @@ int cgdiv(int r1,int r2)
 	return (r1);
 }
 
-//打印一个寄存器中的值，一般是一个语句的结果
+//打印一个寄存器中的值，其中printint是用汇编写的输出十进制数的函数，通过call调用
 void cgprintint(int r)
 {
 	fprintf(Outfile,"\tmovq\t%s,%%rdi\n",reglist[r]);//Linux x86-64期望函数的第一个参数在%rdi中
 	fprintf(Outfile,"\tcall\tprintint\n");
 	free_register(r);
+}
+
+//将寄存器r的值传给标识符identifier
+int cgstorglob(int r, char *identifier) {
+  fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
+  return (r);
+}
+
+//声明全局标识符
+void cgglobsym(char *sym) {
+  fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
 }

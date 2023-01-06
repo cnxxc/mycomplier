@@ -2,21 +2,34 @@
 #include "data.h"
 #include "decl.h"
 
-//判断并构建叶子结点（整数结点）
-static struct ASTnode *primary(void)
-{
-	struct ASTnode *n;
+//判断并构建叶子结点（整数或标识符结点）
+static struct ASTnode *primary(void) {
+  struct ASTnode *n;
+  int id;
 
-	switch(Token.token)
-	{
-		case T_INTLIT:
-			n=mkastleaf(A_INTLIT,Token.intvalue);
-			scan(&Token);
-			return (n);
-		default:
-			fprintf(stderr,"syntax error on line %d\n, token %d\n",Line,Token.token);
-			exit(1);
-	}
+  switch (Token.token) {
+  case T_INTLIT:
+    // For an INTLIT token, make a leaf AST node for it.
+    n = mkastleaf(A_INTLIT, Token.intvalue);
+    break;
+
+  case T_IDENT:
+    // Check that this identifier exists
+    id = findglob(Text);
+    if (id == -1)
+      fatals("Unknown variable", Text);
+
+    // Make a leaf AST node for it
+    n = mkastleaf(A_IDENT, id);
+    break;
+
+  default:
+    fatald("Syntax error, token", Token.token);
+  }
+
+  // Scan in the next token and return the leaf node
+  scan(&Token);
+  return (n);
 }
 
 //token转AST node type
@@ -53,7 +66,7 @@ static int op_precedence(int tokentype)
 	return (prec);
 }
 
-//参数为上一个token优先级
+//构造算式AST，ptp为上一个token优先级，首次调用时为0
 struct ASTnode *binexpr(int ptp) {
   struct ASTnode *left, *right;
   int tokentype;
