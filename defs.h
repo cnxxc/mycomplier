@@ -6,12 +6,16 @@
 #define TEXTLEN		512 //标识符长度限制
 #define NSYMBOLS 	1024//符号表项数
 
-//Tokens
-enum{
-	T_EOF,T_PLUS,T_MINUS,T_STAR,T_SLASH,T_INTLIT,T_SEMI,T_EQUALS,
-	T_IDENT,
-	//关键字
-	T_PRINT,T_INT
+//Tokens，优先级从高到低（无优先级的除外）
+enum {
+  T_EOF,
+  T_PLUS, T_MINUS,
+  T_STAR, T_SLASH,
+  T_EQ, T_NE,
+  T_LT, T_GT, T_LE, T_GE,
+  T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
+  // 关键字
+  T_PRINT, T_INT
 };
 
 //符号
@@ -22,7 +26,9 @@ struct token{
 
 //AST node types
 enum {
-  A_ADD, A_SUBTRACT, A_MULTIPLY, A_DIVIDE, A_INTLIT,
+  A_ADD=1, A_SUBTRACT, A_MULTIPLY, A_DIVIDE,
+  A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE,
+  A_INTLIT,
   A_IDENT, A_LVIDENT, A_ASSIGN
 };
 

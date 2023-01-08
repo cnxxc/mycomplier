@@ -32,27 +32,19 @@ static struct ASTnode *primary(void) {
   return (n);
 }
 
-//token转AST node type
-int arithop(int tok)
-{
-	switch(tok)
-	{
-		case T_PLUS:
-			return (A_ADD);
-		case T_MINUS:
-			return (A_SUBTRACT);
-		case T_STAR:
-			return (A_MULTIPLY);
-		case T_SLASH:
-			return (A_DIVIDE);
-		default:
-			fprintf(stderr,"unknown token in arithop() on line %d\n",Line);
-			exit(1);
-	}
+//token转AST node type，token和ast node type一一对应
+static int arithop(int tokentype) {
+  if (tokentype > T_EOF && tokentype < T_INTLIT)
+    return(tokentype);
+  fatald("Syntax error, token", tokentype);
 }
 
-static int OpPrec[]={0,10,10,20,20,0};
-//					EOF,+,-, *, /,INTLIT
+static int OpPrec[] = {
+  0, 10, 10,			// T_EOF, T_PLUS, T_MINUS
+  20, 20,			// T_STAR, T_SLASH
+  30, 30,			// T_EQ, T_NE
+  40, 40, 40, 40		// T_LT, T_GT, T_LE, T_GE
+};
 
 //获取运算符优先级
 static int op_precedence(int tokentype)

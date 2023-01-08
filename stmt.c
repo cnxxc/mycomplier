@@ -30,7 +30,7 @@ void assignment_statement(void) {
 	//赋值的AST node中，右子树是标识符在全局符号表中的下标，左子树为赋的值
 	right = mkastleaf(A_LVIDENT, id);
 
-	match(T_EQUALS, "=");
+	match(T_ASSIGN, "=");
 
 	//赋值可以是表达式
 	left = binexpr(0);
