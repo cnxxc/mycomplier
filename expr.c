@@ -66,7 +66,7 @@ struct ASTnode *binexpr(int ptp) {
   left = primary();
 
   tokentype = Token.token;
-  if (tokentype == T_SEMI)
+  if (tokentype == T_SEMI || tokentype == T_RPAREN)
     return (left);
 
   //由于main中调用binexpr时参数为0，因此会一直迭代到文件结束
@@ -75,10 +75,10 @@ struct ASTnode *binexpr(int ptp) {
 
     right = binexpr(OpPrec[tokentype]);//递归结束之后，输入参数ptp仍然为0
 
-    left = mkastnode(arithop(tokentype), left, right, 0);
+    left = mkastnode(arithop(tokentype), left, NULL, right, 0);
 
     tokentype = Token.token;
-    if (tokentype == T_SEMI)
+    if (tokentype == T_SEMI || tokentype == T_RPAREN)
       return (left);
   }
 

@@ -147,19 +147,48 @@ void cgglobsym(char *sym) {
   fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
 }
 
-//比较两个寄存器大小，根据r2-r1，how是setX指令
-static int cgcompare(int r1, int r2, char *how) {
+// List of comparison instructions,
+// in AST order: A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE
+static char *cmplist[] =
+  { "sete", "setne", "setl", "setg", "setle", "setge" };
+
+// Compare two registers and set if true.生成if的条件，r2存放0或1
+int cgcompare_and_set(int ASTop, int r1, int r2) {
+
+  // Check the range of the AST operation
+  if (ASTop < A_EQ || ASTop > A_GE)
+    fatal("Bad ASTop in cgcompare_and_set()");
+
   fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
-  fprintf(Outfile, "\t%s\t%s\n", how, breglist[r2]);
-  //由于setX指令只设置寄存器最低位，需要用and指令将高位清空
-  fprintf(Outfile, "\tandq\t$255,%s\n", reglist[r2]);
+  fprintf(Outfile, "\t%s\t%s\n", cmplist[ASTop - A_EQ], breglist[r2]);
+  fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r2], reglist[r2]);
   free_register(r1);
   return (r2);
 }
 
-int cgequal(int r1, int r2) { return(cgcompare(r1, r2, "sete")); }
-int cgnotequal(int r1, int r2) { return(cgcompare(r1, r2, "setne")); }
-int cglessthan(int r1, int r2) { return(cgcompare(r1, r2, "setl")); }
-int cggreaterthan(int r1, int r2) { return(cgcompare(r1, r2, "setg")); }
-int cglessequal(int r1, int r2) { return(cgcompare(r1, r2, "setle")); }
-int cggreaterequal(int r1, int r2) { return(cgcompare(r1, r2, "setge")); }
+//生成一个标签
+void cglabel(int l) {
+  fprintf(Outfile, "L%d:\n", l);
+}
+
+// Generate a jump to a label
+void cgjump(int l) {
+  fprintf(Outfile, "\tjmp\tL%d\n", l);
+}
+
+// List of inverted jump instructions,
+// in AST order: A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE
+static char *invcmplist[] = { "jne", "je", "jge", "jle", "jg", "jl" };
+
+//r1-r2不满足ASTop时跳转
+int cgcompare_and_jump(int ASTop, int r1, int r2, int label) {
+
+  // Check the range of the AST operation
+  if (ASTop < A_EQ || ASTop > A_GE)
+    fatal("Bad ASTop in cgcompare_and_set()");
+
+  fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  fprintf(Outfile, "\t%s\tL%d\n", invcmplist[ASTop - A_EQ], label);
+  freeall_registers();
+  return (NOREG);
+}

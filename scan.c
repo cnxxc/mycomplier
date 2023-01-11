@@ -83,20 +83,28 @@ static int scanident(int c,char *buf,int lim)
 }
 
 //判断字符串是否是关键字
-static int keyword(char *s)
-{
-	switch(*s)
-	{
-	case 'i':
-		if(!strcmp(s,"int"))
-			return (T_INT);
-		break;
-	case 'p':
-		if(!strcmp(s,"print"))
-			return (T_PRINT);
-		break;
-	}
-	return (0);
+static int keyword(char *s) {
+  switch (*s) {
+    case 'e':
+      if (!strcmp(s, "else"))
+		return (T_ELSE);
+      break;
+    case 'i':
+      if (!strcmp(s, "if"))
+	return (T_IF);
+      if (!strcmp(s, "int"))
+		return (T_INT);
+      break;
+    case 'p':
+      if (!strcmp(s, "print"))
+		return (T_PRINT);
+      break;
+	case 'w':
+      if (!strcmp(s, "while"))
+		return (T_WHILE);
+      break;
+  }
+  return (0);
 }
 
 //扫描下一个token赋给t，扫描到文件结尾返回0
@@ -124,6 +132,18 @@ int scan(struct token *t)
 	case ';':
 		t->token=T_SEMI;
 		break;
+    case '{':
+      t->token = T_LBRACE;
+      break;
+    case '}':
+      t->token = T_RBRACE;
+      break;
+    case '(':
+      t->token = T_LPAREN;
+      break;
+    case ')':
+      t->token = T_RPAREN;
+      break;
 	case '=':
 		if((c=next())=='='){
 			t->token=T_EQ;
