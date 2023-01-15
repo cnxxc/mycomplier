@@ -2,8 +2,10 @@
 #include "data.h"
 #include "decl.h"
 
+static struct ASTnode *single_statement(void);
+
 //生成print语句的汇编
-static struct ASTnode *print_statement(void){
+static struct ASTnode *print_statement(void) {
 	struct ASTnode *tree;
 	int reg;
 
@@ -13,7 +15,6 @@ static struct ASTnode *print_statement(void){
 
   tree = mkastunary(A_PRINT, tree, 0);
 
-	semi();
   return (tree);
 }
 
@@ -37,7 +38,6 @@ static struct ASTnode *assignment_statement(void) {
 
 	tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
 
-	semi();
   return (tree);
 }
 
@@ -95,6 +95,71 @@ struct ASTnode *while_statement(void) {
   return (mkastnode(A_WHILE, condAST, NULL, bodyAST, 0));
 }
 
+//  for语句的执行顺序
+//  preop_statement;
+//  while ( true_false_expression ) {
+//    compound_statement;
+//    postop_statement;
+//  }
+static struct ASTnode *for_statement(void) {
+  struct ASTnode *condAST, *bodyAST;
+  struct ASTnode *preopAST, *postopAST;
+  struct ASTnode *tree;
+
+  // Ensure we have 'for' '('
+  match(T_FOR, "for");
+  lparen();
+
+  // Get the pre_op statement and the ';'
+  preopAST = single_statement();
+  semi();
+
+  // Get the condition and the ';'
+  condAST = binexpr(0);
+  if (condAST->op < A_EQ || condAST->op > A_GE)
+    fatal("Bad comparison operator");
+  semi();
+
+  // Get the post_op statement and the ')'
+  postopAST = single_statement();
+  rparen();
+
+  // Get the compound statement which is the body
+  bodyAST = compound_statement();
+
+  // For now, all four sub-trees have to be non-NULL.
+  // Later on, we'll change the semantics for when some are missing
+
+  // Glue the compound statement and the postop tree
+  tree = mkastnode(A_GLUE, bodyAST, NULL, postopAST, 0);
+
+  // Make a WHILE loop with the condition and this new body
+  tree = mkastnode(A_WHILE, condAST, NULL, tree, 0);
+
+  // And glue the preop tree to the A_WHILE tree
+  return (mkastnode(A_GLUE, preopAST, NULL, tree, 0));
+}
+
+static struct ASTnode *single_statement(void) {
+  switch (Token.token) {
+    case T_PRINT:
+      return (print_statement());
+    case T_INT:
+      var_declaration();
+      return (NULL);		// No AST generated here
+    case T_IDENT:
+      return (assignment_statement());
+    case T_IF:
+      return (if_statement());
+    case T_WHILE:
+      return (while_statement());
+    case T_FOR:
+      return (for_statement());
+    default:
+      fatald("Syntax error, token", Token.token);
+  }
+}
+
 //解析一个大括号中的所有语句
 struct ASTnode *compound_statement(void) {
   struct ASTnode *left = NULL;
@@ -104,39 +169,24 @@ struct ASTnode *compound_statement(void) {
   lbrace();
 
   while (1) {
-    switch (Token.token) {
-      case T_PRINT:
-	      tree = print_statement();
-	      break;
-      case T_INT:
-	      var_declaration();
-	      tree = NULL;		// No AST generated here
-	      break;
-      case T_IDENT:
-	      tree = assignment_statement();
-	      break;
-      case T_IF:
-	      tree = if_statement();
-	      break;
-      case T_WHILE:
-	      tree = while_statement();
-	      break;
-      case T_RBRACE:
-	      // When we hit a right curly bracket,
-	      // skip past it and return the AST
-	      rbrace();
-	      return (left);
-      default:
-	      fatald("Syntax error, token", Token.token);
-    }
+    tree = single_statement();
 
-    if (tree) {
+    // Some statements must be followed by a semicolon
+    if (tree != NULL && (tree->op == A_PRINT || tree->op == A_ASSIGN))
+      semi();
+
+    if (tree != NULL) {
       //left是之前语句生成的树
       if (left == NULL)
 	      left = tree;
       else
         //glue将多个语句结合成一棵树
 	      left = mkastnode(A_GLUE, left, NULL, tree, 0);
+    }
+
+    if (Token.token == T_RBRACE) {
+      rbrace();
+      return (left);
     }
   }
 }

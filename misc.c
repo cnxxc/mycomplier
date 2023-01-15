@@ -11,7 +11,7 @@ void match(int t,char *what) {
 	}
 }
 
-//适配一个分号
+//匹配一个分号
 void semi(void) {
 	match(T_SEMI,";");
 }
