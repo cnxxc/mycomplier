@@ -29,14 +29,18 @@ static int newglob(void)
 }
 
 //在全局符号表中增加一项，返回下标
-int addglob(char *name)
-{
-    int y;
+int addglob(char *name, int type, int stype) {
+  int y;
 
-    if((y=findglob(name))!=-1){
-        return (y);
-    }
-    y=newglob();
-    Gsym[y].name=strdup(name);
+  // If this is already in the symbol table, return the existing slot
+  if ((y = findglob(name)) != -1)
     return (y);
+
+  // Otherwise get a new slot, fill it in and
+  // return the slot number
+  y = newglob();
+  Gsym[y].name = strdup(name);
+  Gsym[y].type = type;
+  Gsym[y].stype = stype;
+  return (y);
 }

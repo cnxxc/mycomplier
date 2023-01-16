@@ -155,6 +155,6 @@ void genprintint(int reg) {
   cgprintint(reg);
 }
 
-void genglobsym(char *s) {
-  cgglobsym(s);
+void genglobsym(int id) {
+  cgglobsym(id);
 }

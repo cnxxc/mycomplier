@@ -8,23 +8,26 @@ static struct ASTnode *primary(void) {
   int id;
 
   switch (Token.token) {
-  case T_INTLIT:
-    // For an INTLIT token, make a leaf AST node for it.
-    n = mkastleaf(A_INTLIT, Token.intvalue);
-    break;
+    case T_INTLIT:
+      //在char范围内的整数当作char类型
+      if ((Token.intvalue) >= 0 && (Token.intvalue < 256))
+        n = mkastleaf(A_INTLIT, P_CHAR, Token.intvalue);
+      else
+        n = mkastleaf(A_INTLIT, P_INT, Token.intvalue);
+      break;
 
-  case T_IDENT:
-    // Check that this identifier exists
-    id = findglob(Text);
-    if (id == -1)
-      fatals("Unknown variable", Text);
+    case T_IDENT:
+      // Check that this identifier exists
+      id = findglob(Text);
+      if (id == -1)
+        fatals("Unknown variable", Text);
 
-    // Make a leaf AST node for it
-    n = mkastleaf(A_IDENT, id);
-    break;
+      // Make a leaf AST node for it
+      n = mkastleaf(A_IDENT, Gsym[id].type, id);
+      break;
 
-  default:
-    fatald("Syntax error, token", Token.token);
+    default:
+      fatald("Syntax error, token", Token.token);
   }
 
   // Scan in the next token and return the leaf node

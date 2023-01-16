@@ -141,8 +141,12 @@ int cgstorglob(int r, char *identifier) {
 }
 
 //声明全局标识符
-void cgglobsym(char *sym) {
-  fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
+void cgglobsym(int id) {
+  // Choose P_INT or P_CHAR
+  if (Gsym[id].type == P_INT)
+    fprintf(Outfile, "\t.comm\t%s,8,8\n", Gsym[id].name);
+  else
+    fprintf(Outfile, "\t.comm\t%s,1,1\n", Gsym[id].name);
 }
 
 // List of comparison instructions,

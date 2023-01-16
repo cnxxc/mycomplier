@@ -17,7 +17,7 @@ enum {
   T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
   // Keywords
   T_PRINT, T_INT, T_IF, T_ELSE, T_WHILE,
-  T_FOR, T_VOID
+  T_FOR, T_VOID, T_CHAR
 };
 
 //符号
@@ -35,9 +35,15 @@ enum {
   A_IF, A_WHILE, A_FUNCTION
 };
 
+//初始类型，用于表示语句声明时的类型
+enum {
+  P_NONE, P_VOID, P_CHAR, P_INT //P_NONE表示结点不是表达式，没有类型
+};
+
 //抽象语法树结点，结点为表达式或整数。为表达式时，op为四则运算符，left、right分别为两个操作数；为整数时，op为A_INTLIT，intvalue生效
 struct ASTnode{
 	int op;//取值为上面的枚举类型
+  int type;//取值为初始类型
 	struct ASTnode *left;//左子树
   struct ASTnode *mid;//中子树，A_IF结点需要三个子结点
 	struct ASTnode *right;//右子树
@@ -50,7 +56,14 @@ struct ASTnode{
 
 #define NOREG	-1  //没有返回值的语句，genAST的传入参数
 
+//符号的类别
+enum {
+  S_VARIABLE, S_FUNCTION
+};
+
 //符号表，存放标识符相关数据
 struct symtable{
 	char *name;
+  int type;   //符号的初始类型
+  int stype;  //符号的类别
 };
