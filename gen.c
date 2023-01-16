@@ -69,7 +69,7 @@ static int genWHILE(struct ASTnode *n) {
   return (NOREG);
 }
 
-//汇编代码生成，返回返回值所在寄存器
+//输入AST，汇编代码生成，返回返回值所在寄存器
 int genAST(struct ASTnode *n, int reg, int parentASTop) {
   int leftreg, rightreg;
 
@@ -86,6 +86,12 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
       genfreeregs();
       genAST(n->right, NOREG, n->op);
       genfreeregs();
+      return (NOREG);
+    case A_FUNCTION:
+      // Generate the function's preamble before the code
+      cgfuncpreamble(Gsym[n->v.id].name);
+      genAST(n->left, NOREG, n->op);
+      cgfuncpostamble();
       return (NOREG);
   }
 
@@ -138,10 +144,6 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
 
 void genpreamble() {
   cgpreamble();
-}
-
-void genpostamble() {
-  cgpostamble();
 }
 
 //释放所有寄存器

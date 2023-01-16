@@ -17,7 +17,7 @@ enum {
   T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
   // Keywords
   T_PRINT, T_INT, T_IF, T_ELSE, T_WHILE,
-  T_FOR
+  T_FOR, T_VOID
 };
 
 //符号
@@ -32,7 +32,7 @@ enum {
   A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE,
   A_INTLIT,
   A_IDENT, A_LVIDENT, A_ASSIGN, A_PRINT, A_GLUE,  //A_GLUE先执行左子树再执行右子树
-  A_IF, A_WHILE
+  A_IF, A_WHILE, A_FUNCTION
 };
 
 //抽象语法树结点，结点为表达式或整数。为表达式时，op为四则运算符，left、right分别为两个操作数；为整数时，op为A_INTLIT，intvalue生效

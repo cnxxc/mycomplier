@@ -35,11 +35,9 @@ static void free_register(int reg)
 }
 
 //main函数前的动作
-void cgpreamble()
-{
+void cgpreamble() {
   freeall_registers();
-  fputs(
-	"\t.text\n"
+  fputs("\t.text\n"
 	".LC0:\n"
 	"\t.string\t\"%d\\n\"\n"
 	"printint:\n"
@@ -51,21 +49,21 @@ void cgpreamble()
 	"\tmovl\t%eax, %esi\n"
 	"\tleaq	.LC0(%rip), %rdi\n"
 	"\tmovl	$0, %eax\n"
-	"\tcall	printf@PLT\n"
-	"\tnop\n"
-	"\tleave\n"
-	"\tret\n"
-	"\n"
-	"\t.globl\tmain\n"
-	"\t.type\tmain, @function\n"
-	"main:\n"
-	"\tpushq\t%rbp\n"
-	"\tmovq	%rsp, %rbp\n",
-  Outfile);
+	"\tcall	printf@PLT\n" "\tnop\n" "\tleave\n" "\tret\n" "\n", Outfile);
 }
 
-//exit(0)的汇编代码
-void cgpostamble()
+//函数执行前的工作，main和普通函数不同
+void cgfuncpreamble(char *name) {
+  fprintf(Outfile,
+	  "\t.text\n"
+	  "\t.globl\t%s\n"
+	  "\t.type\t%s, @function\n"
+	  "%s:\n" "\tpushq\t%%rbp\n"
+	  "\tmovq\t%%rsp, %%rbp\n", name, name, name);
+}
+
+//函数退出后的工作，main和普通函数一样
+void cgfuncpostamble()
 {
   fputs(
 	"\tmovl	$0, %eax\n"
